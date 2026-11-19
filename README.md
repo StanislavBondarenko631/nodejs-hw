@@ -2,7 +2,7 @@
 
 RESTful API для управления заметками с подключением к облачной базе данных MongoDB Atlas через ODM Mongoose. Реализованы полные CRUD-операции, фильтрация по тегам и тексту, пагинация, строгая валидация входящих данных через `celebrate` (`Joi`), модульная архитектура приложения, логирование HTTP-запросов и централизованная обработка ошибок.
 
-**Live Demo (Render):** https://onrender.com
+**Live Demo (Render):** https://nodejs-hw-ozrn.onrender.com
 
 ---
 
