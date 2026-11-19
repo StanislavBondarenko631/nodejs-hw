@@ -3,7 +3,11 @@ import { Note } from '../models/note.js';
 
 export const getAllNotes = async (req, res, next) => {
   try {
-    const { tag, search } = req.query;
+    const { page = 1, perPage = 10, tag, search } = req.query;
+
+    const pageNumber = Number(page);
+    const perPageNumber = Number(perPage);
+    const skip = (pageNumber - 1) * perPageNumber;
 
     const notesQuery = Note.find();
 
@@ -20,9 +24,20 @@ export const getAllNotes = async (req, res, next) => {
       });
     }
 
-    const notes = await notesQuery;
+    const [totalNotes, notes] = await Promise.all([
+      notesQuery.clone().countDocuments(),
+      notesQuery.skip(skip).limit(perPageNumber),
+    ]);
 
-    res.status(200).json({ notes });
+    const totalPages = Math.ceil(totalNotes / perPageNumber);
+
+    res.status(200).json({
+      page: pageNumber,
+      perPage: perPageNumber,
+      totalNotes,
+      totalPages,
+      notes,
+    });
   } catch (error) {
     next(error);
   }
