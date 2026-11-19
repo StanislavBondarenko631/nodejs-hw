@@ -3,9 +3,26 @@ import { Note } from '../models/note.js';
 
 export const getAllNotes = async (req, res, next) => {
   try {
-    const notes = await Note.find();
+    const { tag, search } = req.query;
 
-    res.status(200).json(notes);
+    const notesQuery = Note.find();
+
+    if (tag) {
+      notesQuery.where({ tag });
+    }
+
+    if (search) {
+      notesQuery.where({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { content: { $regex: search, $options: 'i' } },
+        ],
+      });
+    }
+
+    const notes = await notesQuery;
+
+    res.status(200).json({ notes });
   } catch (error) {
     next(error);
   }
