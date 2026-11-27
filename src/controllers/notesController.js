@@ -13,7 +13,8 @@ export const getAllNotes = async (req, res) => {
   }
 
   if (search) {
-    filter.$text = { $search: search };
+    const searchRegex = new RegExp(search, 'i');
+    filter.$or = [{ title: searchRegex }, { content: searchRegex }];
   }
 
   const [notes, totalNotes] = await Promise.all([
@@ -74,7 +75,7 @@ export const updateNote = async (req, res) => {
   const note = await Note.findOneAndUpdate(
     { _id: noteId, userId: req.user._id },
     req.body,
-    { new: true },
+    { returnDocument: 'after' },
   );
 
   if (!note) {
