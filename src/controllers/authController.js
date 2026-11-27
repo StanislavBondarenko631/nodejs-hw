@@ -41,7 +41,6 @@ export const loginUser = async (req, res) => {
 
   await Session.deleteOne({ userId: user._id });
 
-  // створити сесію і куки
   const newSession = await createSession(user._id);
   setSessionCookies(res, newSession);
 
@@ -62,12 +61,8 @@ export const logoutUser = async (req, res) => {
   res.status(204).send();
 };
 
-export const refreshSession = async (req, res) => {
+export const refreshUserSession = async (req, res) => {
   const { refreshToken, sessionId } = req.cookies;
-
-  if (!refreshToken || !sessionId) {
-    throw createHttpError(401, 'No session creds');
-  }
 
   const session = await Session.findOne({
     _id: sessionId,
@@ -75,22 +70,21 @@ export const refreshSession = async (req, res) => {
   });
 
   if (!session) {
-    throw createHttpError(401, 'Bad session');
+    throw createHttpError(401, 'Session not found');
   }
 
   const isTokenExpired = new Date() > session.refreshTokenValidUntil;
 
   if (isTokenExpired) {
-    await session.deleteOne();
-    res.clearCookie('sessionId');
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
     throw createHttpError(401, 'Session token expired');
   }
 
-  await session.deleteOne();
+  await Session.deleteOne({ _id: sessionId, refreshToken });
+
   const newSession = await createSession(session.userId);
   setSessionCookies(res, newSession);
 
-  res.status(200).json({ messages: 'Session refresh success!' });
+  res.status(200).json({
+    message: 'Session refreshed',
+  });
 };
